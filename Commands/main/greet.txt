@@ -1,0 +1,374 @@
+const { ApplicationCommandType, PermissionsBitField, ApplicationCommandOptionType, ActionRowBuilder, SelectMenuBuilder, ButtonStyle, ButtonBuilder, EmbedBuilder } = require('discord.js');
+let MessageActionRow = ActionRowBuilder;
+let MessageEmbed = EmbedBuilder;
+let MessageButton = ButtonBuilder;
+
+const Discord = require("discord.js")
+const { QuickDB } = require("quick.db");
+const db = new QuickDB();
+const emoji = require("../../emoji.json") 
+    const wait = require('util').promisify(setTimeout);
+    const { Color } = require("../../config.json");
+    const greet = require(`../../database/main/Pingonjoin.js`)
+    module.exports = {
+	name: 'pingonjoin',
+	aliases: ["greet", "poj"],
+type: ApplicationCommandType.ChatInput,
+	category: "Anti-alt",
+	description: "Config ping on join on your serevr.",
+	usage: "alt-config",
+  permissions: [`Manage Guild`, `Manage Channels`],
+    options: [
+        {
+            name: 'toggle',
+          
+            description: 'Add a channel to the ping on join.',
+         type: ApplicationCommandOptionType.Subcommand,
+            options: [
+                {
+                    name: 'channel',
+                      required: false,
+                    description: 'Channel to add to the ping on join.',
+                   type: ApplicationCommandOptionType.Channel,
+                }
+            ],
+        },
+        {
+            name: 'webhook',
+            description: 'Set a custom webhook name and avatar for the ping on join.',
+             type: ApplicationCommandOptionType.Subcommand,
+           
+        },
+   {
+            name: 'list',
+            description: 'View all the multi ping on join channels.',
+               type: ApplicationCommandOptionType.Subcommand,
+           
+        },
+       {
+            name: 'message',
+            description: 'Config message for multi ping on join.',
+           type: ApplicationCommandOptionType.Subcommand,          
+        },
+       {
+            name: 'deletion',
+            description: 'Config second(s) of deletions for ping on join greetings.',
+            type: ApplicationCommandOptionType.Subcommand,
+           
+           options: [
+                {
+                    name: 'seconds',
+                      required: true,
+                    description: 'Seconds after I delete a ping on join',
+                   type: ApplicationCommandOptionType.Number,
+                }
+        
+            ],
+        },
+    ],
+	run: async (client, interaction, args) => {
+    let message = interaction;
+let member = interaction;
+interaction.followUp = interaction.channel.send;
+interaction.deferReply = interaction.channel.sendTyping();
+interaction.user = message.author;
+      const emed1 = new MessageEmbed()
+   
+      .setDescription(`${emoji.error} You're missing the **MANAGE_GUILD** permission.`)
+         .setColor(Color)
+   .setAuthor({ name: `${interaction.author.tag}`, iconURL: `${interaction.author?.displayAvatarURL({dynamic: true})}` })
+
+            
+             .setTimestamp();
+             function isStringNotInArray(value, stringArray) {
+                return stringArray.includes(value);
+              }
+               let options = ['help', 'toggle', 'list', 'message', 'deletion'];
+            if(!isStringNotInArray(args[0], options) && args[0] ) {
+            return message.channel.send({
+                embeds: [new Discord.EmbedBuilder()
+                    .setDescription(`> ${emoji.error} ${message.author}: Incorrect **options** provided for the **pingonjoin module**.\n**Example**: \`\`\`+pingonjoin toggle #general \`\`\``)
+                    .setColor(Color)
+                    .addFields({
+                        name: 'Categories',
+                        value: `${options.join(', ')}`,
+                        inline: true,
+                    })
+                ]
+              });
+            }
+            if (args[0]=== "help") {
+              let embed = new MessageEmbed()
+       
+              .setAuthor({ name: `${interaction.user.tag}}`, iconURL: `${interaction.author?.displayAvatarURL({dynamic: true})}` })
+     
+         .setDescription('**ping-on-join custom message**\nThese variables will be replaced in the message.\n**Default Message**\n> Welcome {member_mention} to \`{server}\`. \n**Variables\n**`{server_name}`\n `{member_mention}`\n `{server_id}`\n `{server_count}`  ')
+      .setColor(Color)
+         .setTimestamp();
+         message.channel.send({
+          embeds: [embed]
+         })
+            }
+         if (args[0] === "list") {
+        	if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild))
+			return    interaction.reply({
+        ephemeral: true, embeds:[emed1]
+      })
+        let array = []
+        const guildChannels = await greet.findOne({ guildId: interaction.guild.id,  });
+
+        if (!guildChannels)  {
+          return interaction.channel.send(`${emoji.error} No channel array found for this guild.`);
+        }
+        const channelList = guildChannels.channels.map((channel) => `<#${channel}>`).join('\n');
+
+    await wait(100)
+  
+    let embed = new MessageEmbed()
+
+     .setAuthor({ name: `${interaction.author.tag}`, iconURL: `${interaction.author?.displayAvatarURL({dynamic: true})}` })
+     .setColor(Color)
+     .setThumbnail(interaction.guild.iconURL({dynamic:true} || null))
+
+     embed.setDescription(`${channelList}`)
+
+      
+      embed.setTimestamp();
+        message.channel.send({embeds: [embed] })
+
+         }
+       
+        if (args[0]=== "message") {
+          if (!message.member.permissions.has(PermissionsBitField.Flags.ManageChannels))
+    return message.reply({ 
+        ephemeral: true,
+      embeds: [
+        {
+  color: 0x2f3136,
+  author: {
+		name: `${interaction.author.tag}`,
+		icon_url: `${interaction.author?.displayAvatarURL({ dynamic: true })}`,
+
+	},
+         // footer: { icon_url: client.user.displayAvatarURL() },
+          	footer: {
+		text: `${client.user.username}`,
+		icon_url: `${client.user.displayAvatarURL()}`,
+	},
+
+          description: `${emoji.error} You're missing the \`MANAGE_CHANNELS\` permission`,
+          timestamp: new Date(),
+        },
+      ],
+    })
+     
+    const messageRaw = args.slice(1).join(" ");
+
+    let embed = new MessageEmbed()
+       
+         .setAuthor({ name: `${interaction.user.tag}}`, iconURL: `${interaction.author?.displayAvatarURL({dynamic: true})}` })
+
+    .setDescription('**ping-on-join custom message**\nThese variables will be replaced in the message.\n**Default Message**\n> Welcome {member_mention} to \`{server}\`. \n**Variables\n**`{server_name}`\n `{member_mention}`\n `{server_id}`\n `{server_count}`  ')
+ .setColor(Color)
+    .setTimestamp();
+         const row = new MessageActionRow()
+			.addComponents(
+        new MessageButton()
+        .setCustomId("greet-message")
+					.setLabel('Greet Message')
+					.setStyle(ButtonStyle.Danger),
+                  new MessageButton()
+        .setCustomId("resetgreet-message")
+					.setLabel('Default Greet Message')
+					.setStyle(ButtonStyle.Primary),)
+    if (messageRaw) {
+
+  
+      await db.set(
+        `WM-${interaction.guild.id}`, messageRaw
+      );
+   return   message.channel.send({ 
+        embeds: [  
+          new EmbedBuilder()
+          .setAuthor({ name: `${interaction.user.tag}}`, iconURL: `${interaction.author?.displayAvatarURL({dynamic: true})}` })
+ .setDescription(`${emoji.success} Updated the pingonjoin **message**.`)
+  .setColor(Color)]
+      });
+    }
+let msg = await interaction.channel.send({ components: [row], content: `**${interaction.author}**.`, embeds: [embed] })
+       let filter = (m) => m.user.id === interaction.user.id;
+          let collector = msg.createMessageComponentCollector({
+            filter,
+            type: "BUTTON",
+            time: 60000
+          });
+
+          collector.on("collect", async (button) => {
+            const b = button;
+            if (button.customId && button.customId === "greet-message") {
+          b.deferUpdate()
+              b.channel.send({ content: `${emoji.success} ${interaction.user}: Please provide the message to add?`})
+                 let filter = (m) => interaction.user.id === m.author.id;
+              let dd = button.channel.createMessageCollector({
+                filter,
+                time: 30000,
+                max: 1
+              });
+              
+              dd.on("collect", async (m) => {
+                msg.edit({  embeds:[new EmbedBuilder()
+                  .setAuthor({ name: `${interaction.user.username}`, iconURL: `${interaction.user?.displayAvatarURL({dynamic: true})}` })
+                .setColor(Color)
+                .setThumbnail(interaction.guild.iconURL({dynamic:true} || null))
+                .setDescription(`**Message**:\n${m.content}`)
+              ]});
+              interaction.channel.send(`message was updated.`)
+               await db.set(
+      `WM-${interaction.guild.id}`, m.content
+    );
+
+              })
+
+            }
+                     if (button.customId && button.customId === "resetgreet-message") {
+              b.deferUpdate()
+    
+               await db.set(
+      `WM-${interaction.guild.id}`, `Welcome {member_mention} to \`{server_name}\``
+    );
+              msg.edit({ content: `${emoji.success} Reseted the ping-on-join message to default`})
+
+            }
+          })
+
+
+    
+
+  
+
+    
+        }
+    
+      if (args[0] === "deletion") {
+        if (!args[1]) {
+          let embed = new MessageEmbed()
+     
+          .setDescription(`${emoji.error} You provided a invalid **duration/time**.`)
+      .setColor(`${Color}`)
+      return interaction.channel.send({ embeds: [embed]})
+        }
+    let timedel = Number(args[1], 10);
+    if (args[1].endsWith('s')) {
+      timedel = parseInt(args[1]);
+    }
+    if (!timedel || !args[1] || isNaN(timedel)) {
+      let embed = new MessageEmbed()
+ .setDescription(`${emoji.error} You provided a invalid **duration/time**.`)
+  .setColor(`${Color}`)
+  return interaction.channel.send({ embeds: [embed]})
+    }
+     if (timedel == 0) {  
+      
+       let embed1 = new MessageEmbed()
+.setColor(Color)
+ .setAuthor({ name: `${interaction.user.tag}}`, iconURL: `${interaction.user?.displayAvatarURL({dynamic: true})}` })
+     .setDescription(`You can not set the ping-on-join deletion to 0 seconds :skull:`)
+      .setTimestamp();
+  return interaction.reply({ embeds: [embed1] });
+      
+     
+// db.set(`time_${interaction.guild.id}`, `wtf`)
+     }
+  let tick = timedel * 1000
+
+    let embed = new MessageEmbed()
+.setColor(Color)
+  .setAuthor({ name: `${interaction.user.tag}`, iconURL: `${interaction.user?.displayAvatarURL({dynamic: true})}` })
+     .setDescription(`${emoji.success} ping-on-join messages will be deleted after **${timedel}**  seconds.`)
+      .setTimestamp();
+  interaction.reply({ embeds: [embed] });
+  // db.get(`time_${member.guild.id}`);
+ await db.set(`time_${interaction.guild.id}`, `${tick}`);
+
+      }
+      if (!args[0] || args[0] === "toggle") {
+          		if (!message.member.permissions.has(PermissionsBitField.Flags.ManageGuild))
+			return    interaction.channel.send({
+        ephemeral: true, embeds:[emed1]
+      })
+      let channel;
+      if (!args[0] || args[0] === "toggle") {
+        if (!message.member.permissions.has('MANAGE_GUILD')) {
+            return interaction.channel.send({
+                ephemeral: true, embeds: [emed1]
+            });
+        }
+        let channel;
+        if (args[0] === 'toggle') {
+            channel = message.mentions.channels.first() ||
+                message.guild.channels.cache.find((c) => c.name.includes(args[1])) ||
+                message.guild.channels.cache.get(args[1]) ||
+                interaction.channel;
+        } else {
+            channel = message.mentions.channels.first() ||
+                message.guild.channels.cache.find((c) => c.name.includes(args[0])) ||
+                message.guild.channels.cache.get(args[0]) ||
+                interaction.channel;
+        }
+        let guildChannels = await Greet.findOne({
+            guildId: interaction.guild.id,
+        });
+        let GuildChannel = Greet;
+        if (!guildChannels) {
+            await GuildChannel.create({
+                guildId: interaction.guild.id,
+                channels: [channel.id],
+            });
+            let embed2 = new MessageEmbed()
+                .setColor(Color)
+                .setDescription(`${emoji.success} ping-on-join has been added to ${channel}.`)
+                .setAuthor({ name: `${interaction.author.username}`, iconURL: `${interaction.author?.displayAvatarURL({ dynamic: true })}` })
+            interaction.channel.send({ embeds: [embed2] });
+        } else {
+            let channelToAdd = channel.id;
+            if (guildChannels.channels.includes(channelToAdd)) {
+                const channelIndex = guildChannels.channels.indexOf(channel.id);
+                if (channelIndex !== -1) {
+                    const array = guildChannels.channels;
+                    array.splice(channelIndex, 1);
+                    console.log(array)
+                    await guildChannels.updateOne({ channels: array });
+                }
+
+                let embed2 = new MessageEmbed()
+                    .setColor(Color)
+                    .setDescription(`${emoji.success} Removed ${channel} from the **database**.`)
+                    .setAuthor({ name: `${interaction.author.username}`, iconURL: `${interaction.author?.displayAvatarURL({ dynamic: true })}` })
+                interaction.channel.send({ embeds: [embed2] });
+
+            } else {
+                if (guildChannels.channels.length >= 10) {
+                    let embed2 = new MessageEmbed()
+                        .setColor(Color)
+                        .setDescription(`${emoji.error} You can not add more than **10** channels.`)
+                    return interaction.channel.send({ embeds: [embed2] });
+                }
+                let embed2 = new MessageEmbed()
+                    .setColor(Color)
+                    .setDescription(`${emoji.success} ping-on-join has been added to ${channel}.`)
+                    .setAuthor({ name: `${interaction.author.username}`, iconURL: `${interaction.author?.displayAvatarURL({ dynamic: true })}` })
+                interaction.channel.send({ embeds: [embed2] });
+                guildChannels.channels = guildChannels.channels.concat([channelToAdd]);
+                await guildChannels.save();
+                console.log('Channel to add:', channelToAdd);
+                console.log('Channels array:', guildChannels.channels);
+            }
+        }
+            }
+      }
+     
+             
+              
+    }
+  }
+    
